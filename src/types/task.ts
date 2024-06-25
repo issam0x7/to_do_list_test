@@ -4,11 +4,21 @@
 export type TaskStatus = 'DONE' | 'IN_PROGRESS' | 'TODO';
 
 
-export interface ITask {
+export interface ITodo {
     id: number;
     name: string;
     description: string;
     status: TaskStatus;
     createdAt: Date;
-    subTasks?: ITask[];
+    
+}
+
+
+export interface ISubTodo {
+    id: number;
+    name: string;
+    description: string;
+    status: TaskStatus;
+    createdAt: Date;
+    todoId: number;
 }
