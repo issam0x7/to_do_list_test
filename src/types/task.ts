@@ -1,24 +1,23 @@
 
 
 
-export type TaskStatus = 'DONE' | 'IN_PROGRESS' | 'TODO';
-
-
-export interface ITodo {
-    id: number;
-    name: string;
-    description: string;
-    status: TaskStatus;
-    createdAt: Date;
-    
-}
+export type TaskStatus = 'DONE'  | 'PENDING' | 'VALIDATED';
 
 
 export interface ISubTodo {
     id: number;
     name: string;
-    description: string;
+    done : boolean;
+    createdAt: Date;
+}
+
+export interface ITodo {
+    id: number;
+    name: string;
+    description?: string;
     status: TaskStatus;
     createdAt: Date;
-    todoId: number;
+    subTodos?: ISubTodo[];
 }
+
+
