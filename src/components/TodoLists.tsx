@@ -2,11 +2,13 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { FixedSizeList as List } from "react-window";
 import { db } from "../db";
 import { ITodo } from "../types/task";
+import CreateTodoButton from "./CreateTodoButton";
 import FormModal from "./FormModal";
 import TodoInfoModal from "./TodoInfoModal";
 import TodolistView from "./TodolistView";
 import { SelectedTodoProvider } from "./context/selectedTodoContext";
 import { TodoFormModalProvider } from "./context/todoFormModalContext";
+import { useState } from "react";
 
 // const getItemSize = (index: number, todoList: ITodo[]) =>
 //   todoList[index];
@@ -16,6 +18,8 @@ const Row = ({ todoList }: { todoList: ITodo }) => {
 };
 
 const TodoLists = () => {
+
+  const [search, setSearch] = useState("");
   const lists = useLiveQuery(() =>
     db.todoLists.orderBy("createdAt").reverse().toArray()
   );
@@ -30,6 +34,7 @@ const TodoLists = () => {
           {/* {lists?.map((list: ITodo) => (
         <TodolistView key={list.id} todoList={list} />
       ))} */}
+          <CreateTodoButton />
           <List
             itemData={lists}
             height={500}

@@ -1,13 +1,15 @@
 import {
-    Dialog,
-    DialogPanel,
-    DialogTitle
+  Dialog,
+  DialogPanel,
+  DialogTitle
 } from "@headlessui/react";
 import { useTodoFormModalContext } from "./context/todoFormModalContext";
 import CreateTaskForm from "./createTaskForm";
 
 const FormModal = () => {
-    const { setModalState, modalState } = useTodoFormModalContext();
+  const { setModalState, modalState } = useTodoFormModalContext();
+
+  
   return (
     <Dialog
       open={modalState.isOpen}

@@ -1,5 +1,5 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Trash } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 import { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -58,7 +58,7 @@ const CreateTaskForm = () => {
       description: todoToEdit?.description ?? "",
       createdAt: todoToEdit?.createdAt ?? new Date(),
       status: todoToEdit?.status ?? "",
-      subTodos: todoToEdit?.subTodos ?? [],
+      subTodos: todoToEdit?.subTodos ?? [{id: 1, name: "", done: false, createdAt: new Date()}],
     },
   });
 
@@ -69,8 +69,11 @@ const CreateTaskForm = () => {
 
   const onSubmit: SubmitHandler<TaskFormInputs> = async (data) => {
     if (modalState.modalType === "create") {
-      console.log("Task Created:", data);
+      const lastTodo = await db.todoLists.toCollection().last();
+      console.log(lastTodo);
+      const id = lastTodo?.id  ? lastTodo.id + 1 : 1;
       await db.todoLists.add({
+        id: id,
         name: data.name,
         description: data.description ?? "",
         status: data.status as TaskStatus,
@@ -93,7 +96,7 @@ const CreateTaskForm = () => {
       <h1 className="text-2xl mb-4">Création de Tâches</h1>
 
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2">
+        <label className="block text-sm font-bold mb-2">
           Nom de la tâche
         </label>
         <Controller
@@ -102,7 +105,7 @@ const CreateTaskForm = () => {
           render={({ field }) => (
             <input
               type="text"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="shadow appearance-none border rounded w-full py-2 px-3  leading-tight focus:outline-none focus:shadow-outline"
               {...field}
             />
           )}
@@ -113,7 +116,7 @@ const CreateTaskForm = () => {
       </div>
 
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2">
+        <label className="block  text-sm font-bold mb-2">
           Date et heure de création
         </label>
         <Controller
@@ -125,7 +128,7 @@ const CreateTaskForm = () => {
               onChange={field.onChange}
               showTimeSelect
               dateFormat="Pp"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="shadow appearance-none border rounded w-full py-2 px-3  leading-tight focus:outline-none focus:shadow-outline"
             />
           )}
         />
@@ -137,7 +140,7 @@ const CreateTaskForm = () => {
       </div>
 
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2">
+        <label className="block text-sm font-bold mb-2">
           Statut
         </label>
         <Controller
@@ -157,7 +160,7 @@ const CreateTaskForm = () => {
       </div>
 
       <div className="mb-4" id="subTodos">
-        <label className="block text-gray-700 text-sm font-bold mb-2">
+        <label className="block  text-sm font-bold mb-2">
           Sous-tâches
         </label>
         {fields.map((field, index) => (
@@ -165,16 +168,11 @@ const CreateTaskForm = () => {
             <div className="w-full flex items-center gap-2">
               <input
                 type="text"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="shadow appearance-none border rounded w-full py-2 px-3  leading-tight focus:outline-none focus:shadow-outline"
                 {...register(`subTodos.${index}.name`)}
               />
             </div>
-            <button
-              type="button"
-              className="w-max bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            >
-              +
-            </button>
+        
             <button
               type="button"
               className="w-max bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
@@ -187,6 +185,7 @@ const CreateTaskForm = () => {
       </div>
       <button
         type="button"
+        className="w-max block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ms-auto"
         onClick={() =>
           append({
             id: fields[fields.length - 1].id + 1,
@@ -196,7 +195,7 @@ const CreateTaskForm = () => {
           })
         }
       >
-        Ajouter une sous-tâche
+        <Plus className="w-4 h-4" />
       </button>
 
       <div className="mb-4">
@@ -207,13 +206,13 @@ const CreateTaskForm = () => {
             checked={withDescription}
             onChange={() => setWithDescription(!withDescription)}
           />
-          <label className="block text-gray-700 text-sm font-bold ">
+          <label className="block text-sm font-bold ">
             Ajouter une description
           </label>
         </div>
         {withDescription && (
           <>
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="block  text-sm font-bold mb-2">
               Description de la tâche
             </label>
             <Controller
@@ -221,7 +220,7 @@ const CreateTaskForm = () => {
               control={control}
               render={({ field }) => (
                 <textarea
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  className="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
                   {...field}
                 />
               )}
