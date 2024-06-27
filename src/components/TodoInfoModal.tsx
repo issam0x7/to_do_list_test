@@ -1,11 +1,13 @@
 import { Checkbox, Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
+import { useLiveQuery } from "dexie-react-hooks";
+import { X } from "lucide-react";
 import { useEffect, useState } from "react";
-import ReactSelect from "react-select";
 import { toast } from "react-toastify";
 import { db } from "../db";
 import { ISubTodo, TaskStatus } from "../types/task";
 import { useSelectedTodoContext } from "./context/selectedTodoContext";
 import { statusOptions } from "./createTaskForm";
+import CustomSelect from "./ui/select";
 
 export type SelectOption = {
   value: TaskStatus;
@@ -16,7 +18,12 @@ const TodoInfoModal = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const { selectedTodo, setSelectedTodo } = useSelectedTodoContext();
-  
+
+  const task = useLiveQuery(async () => {
+    if (selectedTodo) {
+      return await db.todoLists.get(selectedTodo.id);
+    }
+  }, [selectedTodo]);
 
   useEffect(() => {
     setIsOpen(selectedTodo !== null);
@@ -24,7 +31,7 @@ const TodoInfoModal = () => {
 
   const onSelectStatus = (option: SelectOption) => {
     if (selectedTodo) {
-      const isSubTaskCompleted = selectedTodo.subTodos?.every(
+      const isSubTaskCompleted = task?.subTodos?.every(
         (subTodo) => subTodo.done
       );
 
@@ -39,6 +46,7 @@ const TodoInfoModal = () => {
         toast.warn(
           "Toutes les sous-tâches doivent être complétées avant de changer le statut de la tâche"
         );
+
       }
     }
   };
@@ -53,32 +61,42 @@ const TodoInfoModal = () => {
       className="relative z-50"
     >
       <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-        <DialogPanel className="w-[800px] space-y-4 border bg-[#242424] p-12">
+        <DialogPanel className="relative w-[800px] space-y-4 border bg-[#242424] p-12">
+          
+          <button
+            type="button"
+            className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+            onClick={() => {
+              setIsOpen(false);
+              setSelectedTodo(null);
+            }}
+          >
+            <span className="sr-only">Close</span>
+            <X className="w-6 h-6 text-white" />
+          </button>
           <div className="flex items-center justify-between">
             <DialogTitle className="font-bold text-2xl">
               To do : {selectedTodo?.name}{" "}
             </DialogTitle>
 
-            <ReactSelect
+            <CustomSelect
               defaultValue={statusOptions.find(
                 (option) => option.value === selectedTodo?.status
               )}
               options={statusOptions}
               onChange={(option) => onSelectStatus(option as SelectOption)}
-              className="text-gray-700"
             />
           </div>
-
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <label htmlFor="name" className="font-semibold">
+              <label htmlFor="name" className="font-semibold text-lg">
                 description :
               </label>
               <p>{selectedTodo?.description}</p>
             </div>
             {selectedTodo?.subTodos && selectedTodo?.subTodos.length > 0 && (
               <div className="flex flex-col gap-2">
-                <label htmlFor="name" className="font-semibold">
+                <label htmlFor="name" className="font-semibold text-lg">
                   Sous-tâches :
                 </label>
                 {selectedTodo?.subTodos?.map((subTodo: ISubTodo) => (
@@ -126,6 +144,12 @@ const SubTask = ({
     }
     task.subTodos[subTaskIndex].done = done;
 
+    const allSubTasksDone = task.subTodos.every((subTask: ISubTodo) => subTask.done);
+
+    if (!allSubTasksDone && task.status === "DONE") {
+      task.status = "PENDING";
+    }
+
     // Update the task in the database
     await db.todoLists.put(task);
   };
@@ -138,7 +162,7 @@ const SubTask = ({
           setEnabled(!enabled);
           updateSubTaskDone(todoId, subTodo.id, checked);
         }}
-        className="group block size-4 rounded border bg-white data-[checked]:bg-blue-500"
+        className="group block size-6 rounded border bg-white data-[checked]:bg-green-500"
       >
         {/* Checkmark icon */}
         <svg
@@ -154,7 +178,7 @@ const SubTask = ({
           />
         </svg>
       </Checkbox>
-      <p key={subTodo.id}>{subTodo.name}</p>
+      <p key={subTodo.id} className={`${subTodo.done ?? "decoration-line-through"}`}>{subTodo.name}</p>
     </div>
   );
 };

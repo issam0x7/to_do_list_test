@@ -9,12 +9,12 @@ import {
   useFieldArray,
   useForm,
 } from "react-hook-form";
-import ReactSelect from "react-select";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { db, updateTodo } from "../db";
 import { TaskStatus } from "../types/task";
 import { useTodoFormModalContext } from "./context/todoFormModalContext";
+import CustomSelect from "./ui/select";
 
 const TaskSchema = yup.object().shape({
   name: yup.string().required("Nom de la tâche est requis"),
@@ -25,7 +25,10 @@ const TaskSchema = yup.object().shape({
     yup.object().shape({
       id: yup.number().required("Id de la sous-tâche est requis"),
       name: yup.string().required("Nom de la sous-tâche est requis"),
-      done: yup.boolean().required("La sous-tâche doit être complétée").default(false),
+      done: yup
+        .boolean()
+        .required("La sous-tâche doit être complétée")
+        .default(false),
       createdAt: yup.date().required("Date et heure de création sont requises"),
     })
   ),
@@ -40,7 +43,7 @@ export const statusOptions = [
 type TaskFormInputs = yup.InferType<typeof TaskSchema>;
 
 const CreateTaskForm = () => {
-  const { modalState, todoToEdit } = useTodoFormModalContext();
+  const { modalState, todoToEdit, setModalState, setTodoToEdit } = useTodoFormModalContext();
 
   const [withDescription, setWithDescription] = useState(
     modalState.modalType === "edit"
@@ -58,7 +61,9 @@ const CreateTaskForm = () => {
       description: todoToEdit?.description ?? "",
       createdAt: todoToEdit?.createdAt ?? new Date(),
       status: todoToEdit?.status ?? "",
-      subTodos: todoToEdit?.subTodos ?? [{id: 1, name: "", done: false, createdAt: new Date()}],
+      subTodos: todoToEdit?.subTodos ?? [
+        { id: 1, name: "", done: false, createdAt: new Date() },
+      ],
     },
   });
 
@@ -71,8 +76,8 @@ const CreateTaskForm = () => {
     if (modalState.modalType === "create") {
       const lastTodo = await db.todoLists.toCollection().last();
       console.log(lastTodo);
-      const id = lastTodo?.id  ? lastTodo.id + 1 : 1;
-      await db.todoLists.add({
+      const id = lastTodo?.id ? lastTodo.id + 1 : 1;
+     const res =  await db.todoLists.add({
         id: id,
         name: data.name,
         description: data.description ?? "",
@@ -80,12 +85,21 @@ const CreateTaskForm = () => {
         createdAt: data.createdAt,
         subTodos: data.subTodos,
       });
+      if(res){
+        setModalState({ modalType: "create", isOpen: false });
+      }
       toast.success("La tâche a été créée avec succès");
 
       // Code to store task in IndexedDB can be added here
     } else {
       if (todoToEdit) {
-        await updateTodo(todoToEdit?.id, { id: todoToEdit?.id ,  ...data, status: data.status as TaskStatus });
+        await updateTodo(todoToEdit?.id, {
+          id: todoToEdit?.id,
+          ...data,
+          status: data.status as TaskStatus,
+        });
+        setTodoToEdit(null);
+        setModalState({ modalType: "create", isOpen: false });
       }
     }
     // Code to store task in IndexedDB can be added here
@@ -93,12 +107,10 @@ const CreateTaskForm = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <h1 className="text-2xl mb-4">Création de Tâches</h1>
+      <h1 className="text-2xl mb-4">{modalState.modalType === "create" ? "Création de Tâches" : "Modification de Tâches"}</h1>
 
       <div className="mb-4">
-        <label className="block text-sm font-bold mb-2">
-          Nom de la tâche
-        </label>
+        <label className="block text-sm font-bold mb-2">Nom de la tâche</label>
         <Controller
           name="name"
           control={control}
@@ -140,17 +152,14 @@ const CreateTaskForm = () => {
       </div>
 
       <div className="mb-4">
-        <label className="block text-sm font-bold mb-2">
-          Statut
-        </label>
+        <label className="block text-sm font-bold mb-2">Statut</label>
         <Controller
           name="status"
           control={control}
           render={({ field }) => (
-            <ReactSelect
+            <CustomSelect
               options={statusOptions}
               onChange={(option) => field.onChange(option?.value)}
-              className="text-gray-700"
             />
           )}
         />
@@ -160,9 +169,7 @@ const CreateTaskForm = () => {
       </div>
 
       <div className="mb-4" id="subTodos">
-        <label className="block  text-sm font-bold mb-2">
-          Sous-tâches
-        </label>
+        <label className="block  text-sm font-bold mb-2">Sous-tâches</label>
         {fields.map((field, index) => (
           <div key={field.id} className="mb-4 w-full flex gap-2">
             <div className="w-full flex items-center gap-2">
@@ -172,7 +179,7 @@ const CreateTaskForm = () => {
                 {...register(`subTodos.${index}.name`)}
               />
             </div>
-        
+
             <button
               type="button"
               className="w-max bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
@@ -240,7 +247,7 @@ const CreateTaskForm = () => {
         type="submit"
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
       >
-        Créer la tâche
+        {modalState.modalType === "create" ? "Créer la tâche" : "Modifier la tâche"}
       </button>
     </form>
   );

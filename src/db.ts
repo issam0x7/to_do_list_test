@@ -38,6 +38,7 @@ const getRandomStatus = (): TaskStatus => {
 
 export async function populate() {
   const count = await db.todoLists.count();
+  
   if (count === 10000) return;
 
   const tasks = [];

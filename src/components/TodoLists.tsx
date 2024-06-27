@@ -1,14 +1,15 @@
 import { useLiveQuery } from "dexie-react-hooks";
+import { useState } from "react";
 import { FixedSizeList as List } from "react-window";
 import { db } from "../db";
-import { ITodo } from "../types/task";
+import { ITodo, TaskStatus } from "../types/task";
 import CreateTodoButton from "./CreateTodoButton";
 import FormModal from "./FormModal";
+import SearchBar from "./SearchBar";
 import TodoInfoModal from "./TodoInfoModal";
 import TodolistView from "./TodolistView";
 import { SelectedTodoProvider } from "./context/selectedTodoContext";
 import { TodoFormModalProvider } from "./context/todoFormModalContext";
-import { useState } from "react";
 
 // const getItemSize = (index: number, todoList: ITodo[]) =>
 //   todoList[index];
@@ -18,11 +19,20 @@ const Row = ({ todoList }: { todoList: ITodo }) => {
 };
 
 const TodoLists = () => {
-
   const [search, setSearch] = useState("");
-  const lists = useLiveQuery(() =>
-    db.todoLists.orderBy("createdAt").reverse().toArray()
-  );
+  const [selectedStatus, setSelectedStatus] = useState<TaskStatus | "">("");
+  
+  const lists = useLiveQuery(async() => {
+    let query = await db.todoLists
+      .where("name")
+      .startsWithIgnoreCase(search).reverse().sortBy("createdAt");
+
+    if (selectedStatus) {
+      query = query.filter((todo : ITodo) => todo.status === selectedStatus);
+    }
+
+    return query;
+  }, [search, selectedStatus]);
   // console.log(lists);
 
   if (!lists) return null;
@@ -35,6 +45,10 @@ const TodoLists = () => {
         <TodolistView key={list.id} todoList={list} />
       ))} */}
           <CreateTodoButton />
+          <SearchBar
+            setSearch={setSearch}
+            setSelectedStatus={setSelectedStatus}
+          />
           <List
             itemData={lists}
             height={500}

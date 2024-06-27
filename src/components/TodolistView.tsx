@@ -1,8 +1,22 @@
 import { Eye, Pencil, Trash } from "lucide-react";
 import { db } from "../db";
-import { ITodo } from "../types/task";
+import { ITodo, TaskStatus } from "../types/task";
 import { useSelectedTodoContext } from "./context/selectedTodoContext";
 import { useTodoFormModalContext } from "./context/todoFormModalContext";
+
+
+const mapStatusToColor = (status: TaskStatus) => {
+  switch (status) {
+    case "PENDING":
+      return "bg-yellow-500";
+    case "DONE":
+      return "bg-green-500";
+    case "VALIDATED":
+      return "bg-blue-500";
+    default:
+      return "bg-gray-500";
+  }
+};
 
 const TodolistView = ({ todoList }: { todoList: ITodo }) => {
   const { setSelectedTodo } = useSelectedTodoContext();
@@ -17,6 +31,7 @@ const TodolistView = ({ todoList }: { todoList: ITodo }) => {
       <div className="flex-1 flex  gap-4 p-4">
         <div className="flex-1 flex items-center gap-4">
           <h1 className="text-2xl font-bold">{todoList.name}</h1>
+          <span className={`text-white py-2 px-4 rounded-full text-sm font-bold ${mapStatusToColor(todoList.status)}`}>{todoList.status}</span>
         </div>
         <div className="flex-none">
           <button
