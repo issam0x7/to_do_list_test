@@ -3,10 +3,10 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { globalStatusOptions, globalStatusOptions } from "../contants/todoStatus";
 import { db } from "../db";
 import { ISubTodo, TaskStatus } from "../types/task";
 import { useSelectedTodoContext } from "./context/selectedTodoContext";
-import { statusOptions } from "./createTaskForm";
 import CustomSelect from "./ui/select";
 
 export type SelectOption = {
@@ -80,10 +80,10 @@ const TodoInfoModal = () => {
             </DialogTitle>
 
             <CustomSelect
-              defaultValue={statusOptions.find(
+              defaultValue={globalStatusOptions.find(
                 (option) => option.value === selectedTodo?.status
               )}
-              options={statusOptions}
+              options={globalStatusOptions}
               onChange={(option) => onSelectStatus(option as SelectOption)}
             />
           </div>

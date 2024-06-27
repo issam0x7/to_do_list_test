@@ -11,6 +11,7 @@ import {
 } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
+import { createStatusOptions } from "../contants/todoStatus";
 import { db, updateTodo } from "../db";
 import { TaskStatus } from "../types/task";
 import { useTodoFormModalContext } from "./context/todoFormModalContext";
@@ -34,11 +35,7 @@ const TaskSchema = yup.object().shape({
   ),
 });
 
-export const statusOptions = [
-  { value: "PENDING", label: "En attente" },
-  { value: "DONE", label: "Done" },
-  { value: "VALIDATED", label: "Validé" },
-];
+
 
 type TaskFormInputs = yup.InferType<typeof TaskSchema>;
 
@@ -158,7 +155,7 @@ const CreateTaskForm = () => {
           control={control}
           render={({ field }) => (
             <CustomSelect
-              options={statusOptions}
+              options={createStatusOptions}
               onChange={(option) => field.onChange(option?.value)}
             />
           )}

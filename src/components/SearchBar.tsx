@@ -1,3 +1,4 @@
+import { globalStatusOptions } from "../contants/todoStatus";
 import { TaskStatus } from "../types/task";
 import CustomSelect from "./ui/select";
 
@@ -10,9 +11,7 @@ interface ISearchBarProps {
 
 const statusOptions = [
   { value: "", label: "Tous" },
-  { value: "PENDING", label: "En attente" },
-  { value: "DONE", label: "Done" },
-  { value: "VALIDATED", label: "Validé" },
+ ...globalStatusOptions
 ];
 
 
@@ -26,7 +25,6 @@ const SearchBar = ({ setSearch, setSelectedStatus } : ISearchBarProps) => {
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Rechercher"
       />
-      {/* <ReactSelect options={statusOptions} className="w-[200px]" onChange={(option ) => setSelectedStatus(option?.value as TaskStatus)} /> */}
       <CustomSelect options={statusOptions}  onChange={(option ) => setSelectedStatus(option?.value as TaskStatus)} />
     </div>
   );
